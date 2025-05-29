@@ -2,145 +2,136 @@
 <html lang="cs">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Vtipné fotky náhodně</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vtipná fotka z jiné dimenze</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Rubik&display=swap');
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      font-family: 'Rubik', sans-serif;
+      background: radial-gradient(ellipse at top, #0d0d0d 0%, #1a1a1a 100%);
+      overflow-x: hidden;
+      color: white;
+    }
+
+    .stars {
+      position: fixed;
+      width: 200%;
+      height: 200%;
+      background: transparent url('https://i.imgur.com/XUMzF0x.png') repeat;
+      animation: moveStars 100s linear infinite;
+      z-index: -1;
+      opacity: 0.25;
+    }
+
+    @keyframes moveStars {
+      from { transform: translate(0, 0); }
+      to { transform: translate(-100px, -200px); }
+    }
+
+    h1 {
       text-align: center;
-      padding: 2rem;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: white;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 1.5rem;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2.5em;
+      margin-top: 40px;
+      color: #00ffe7;
+      text-shadow: 0 0 10px #00ffe7;
     }
+
+    #photo-container {
+      text-align: center;
+      margin: 40px auto;
+      padding: 30px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+      max-width: 800px;
+      transition: all 0.6s ease;
+    }
+
+    #photo-container:hover {
+      transform: scale(1.01);
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.4);
+    }
+
     img {
-      max-width: 80vw;
-      max-height: 50vh;
-      border-radius: 12px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-      transition: transform 0.3s ease;
-      cursor: pointer;
+      max-width: 100%;
+      max-height: 70vh;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      transition: transform 0.4s ease;
     }
+
     img:hover {
-      transform: scale(1.05);
+      transform: scale(1.02);
     }
-    button, input, textarea {
-      padding: 0.6rem 1rem;
-      border-radius: 6px;
-      border: none;
-      font-size: 1rem;
-      outline: none;
-      transition: background-color 0.3s ease;
+
+    p {
+      font-size: 1.3em;
+      color: #ccc;
     }
+
     button {
-      background-color: #ff6f61;
-      color: white;
+      display: block;
+      margin: 0 auto 50px auto;
+      background-color: #00ffe7;
+      border: none;
+      padding: 14px 32px;
+      font-size: 1.2em;
+      border-radius: 30px;
+      color: #000;
+      font-weight: bold;
+      box-shadow: 0 0 20px #00ffe7;
       cursor: pointer;
-      user-select: none;
+      transition: all 0.3s ease;
     }
+
     button:hover {
-      background-color: #ff8b7b;
-    }
-    form {
-      display: flex;
-      flex-direction: column;
-      max-width: 350px;
-      margin: 0 auto;
-      gap: 0.8rem;
-    }
-    input, textarea {
-      resize: none;
-      font-family: inherit;
-    }
-    #description {
-      height: 3rem;
-    }
-    #message {
-      font-size: 0.9rem;
-      height: 1.2rem;
-      color: #ffcccb;
-      margin-top: -0.5rem;
+      background-color: #0ff;
+      box-shadow: 0 0 30px #0ff;
+      transform: scale(1.05);
     }
   </style>
 </head>
 <body>
-  <h1>Vtipná náhodná fotka</h1>
-  <img id="photo" alt="Náhodná fotka" title="Klikni pro další" />
-  <p id="desc"></p>
-  <button id="refreshBtn">Další fotka</button>
+  <div class="stars"></div>
+  <h1>🌌 Vtipná fotka z jiné dimenze</h1>
 
-  <h2>Přidej vlastní fotku</h2>
-  <form id="uploadForm">
-    <input id="url" type="url" placeholder="URL fotky" required />
-    <textarea id="description" placeholder="Popis fotky" required></textarea>
-    <button type="submit">Nahrát</button>
-    <div id="message"></div>
-  </form>
+  <div id="photo-container">
+    <p>Načítání...</p>
+  </div>
+
+  <button onclick="loadRandomPhoto()">Zobrazit jinou fotku</button>
 
   <script>
-    const workerURL = "https://aged-lab-b15a.cloudfare-f26.workers.dev"; // <- uprav podle potřeby
+    let images = [];
 
-    const photo = document.getElementById("photo");
-    const desc = document.getElementById("desc");
-    const refreshBtn = document.getElementById("refreshBtn");
-    const uploadForm = document.getElementById("uploadForm");
-    const message = document.getElementById("message");
-
-    async function loadRandomPhoto() {
+    async function loadImages() {
       try {
-        message.textContent = "";
-        const res = await fetch(workerURL);
-        if (!res.ok) throw new Error("Nelze načíst fotku");
-        const data = await res.json();
-        photo.src = data.url;
-        photo.alt = data.description;
-        desc.textContent = data.description;
+        const res = await fetch('images.json');
+        images = await res.json();
+        loadRandomPhoto();
       } catch (e) {
-        message.textContent = e.message;
-        photo.src = "";
-        desc.textContent = "";
+        document.getElementById('photo-container').innerHTML = '<p>Chyba při načítání fotek 🚫</p>';
       }
     }
 
-    refreshBtn.addEventListener("click", loadRandomPhoto);
-    photo.addEventListener("click", loadRandomPhoto);
+    function loadRandomPhoto() {
+      if (!images.length) return;
+      const random = images[Math.floor(Math.random() * images.length)];
+      const container = document.getElementById('photo-container');
+      container.innerHTML = `
+        <img src="${random.url}" alt="Vtipná fotka">
+        <p>${random.description}</p>
+      `;
+    }
 
-    uploadForm.addEventListener("submit", async e => {
-      e.preventDefault();
-      message.textContent = "";
-      message.style.color = "#ffcccb";
-
-      const url = uploadForm.url.value.trim();
-      const description = uploadForm.description.value.trim();
-
-      if (!url || !description) {
-        message.textContent = "Vyplň URL i popis";
-        return;
-      }
-
-      try {
-        const res = await fetch(workerURL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url, description }),
-        });
-
-        if (!res.ok) throw new Error("Nahrávání selhalo");
-
-        message.style.color = "lightgreen";
-        message.textContent = "Fotka přidána!";
-        uploadForm.reset();
-        loadRandomPhoto();
-      } catch (e) {
-        message.textContent = e.message;
-      }
-    });
-
-    loadRandomPhoto();
+    loadImages();
   </script>
 </body>
 </html>

@@ -3,24 +3,33 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Vtipná fotka z jiné dimenze</title>
+  <title>🔥 Náhodná Vtipná Fotka</title>
   <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
-      background: radial-gradient(circle, #0d0d0d, #1a1a1a);
+      background: linear-gradient(135deg, #000000, #1a1a1a);
       color: white;
       display: flex;
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
+      background-image: radial-gradient(circle at top left, #ff00cc, transparent 70%), 
+                        radial-gradient(circle at bottom right, #00ffe7, transparent 70%);
+      animation: backgroundShift 10s infinite alternate;
+    }
+
+    @keyframes backgroundShift {
+      0% { background-position: top left, bottom right; }
+      100% { background-position: bottom right, top left; }
     }
 
     h1 {
       text-align: center;
+      margin-top: 40px;
+      font-size: 2.5em;
       color: #00ffe7;
-      text-shadow: 0 0 10px #00ffe7;
-      margin-top: 30px;
+      text-shadow: 0 0 15px #00ffe7;
     }
 
     #photo-container {
@@ -36,11 +45,8 @@
       max-width: 100%;
       max-height: 70vh;
       border-radius: 16px;
+      box-shadow: 0 0 25px #00ffe7;
       margin-bottom: 20px;
-    }
-
-    p {
-      font-size: 1.2em;
     }
 
     button, input[type="submit"] {
@@ -76,16 +82,20 @@
       font-size: 0.9em;
       color: #0f0;
     }
+
+    p {
+      font-size: 1.2em;
+    }
   </style>
 </head>
 <body>
-  <h1>🌌 Vtipná fotka z jiné dimenze</h1>
+  <h1>🌀 Náhodná Vtipná Fotka</h1>
 
   <div id="photo-container">
-    <p>Načítání...</p>
+    <p>Načítám...</p>
   </div>
 
-  <button onclick="loadRandomPhoto()">Zobrazit jinou fotku</button>
+  <button onclick="loadRandomPhoto()">Zobraz jinou</button>
 
   <form onsubmit="return submitImage()">
     <h2>Přidej svou fotku:</h2>
@@ -96,25 +106,23 @@
   </form>
 
   <script>
-    const BIN_ID = '683815d68a456b7966a6d41a'; // 🔁 Sem vlož svůj Bin ID
+    const BIN_ID = '683815d68a456b7966a6d41a';
     const MASTER_KEY = '$2a$10$IUhlviZDWifNgc.S50T5pumARj9LSbg0lNxO5sG6xcqPvt.hTpxfW';
     const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}/latest`;
     const PUT_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
-
     let images = [];
 
     async function loadImages() {
       try {
         const res = await fetch(API_URL, {
-          headers: {
-            'X-Master-Key': MASTER_KEY
-          }
+          headers: { 'X-Master-Key': MASTER_KEY }
         });
         const json = await res.json();
-        images = json.record;
+        images = json.record || [];
         loadRandomPhoto();
       } catch (e) {
-        document.getElementById('photo-container').innerHTML = '<p>Chyba při načítání fotek 😿</p>';
+        console.error(e);
+        document.getElementById('photo-container').innerHTML = '<p>Chyba při načítání 😿</p>';
       }
     }
 
@@ -129,12 +137,12 @@
     }
 
     async function submitImage() {
-      const url = document.getElementById('image-url').value;
-      const description = document.getElementById('image-description').value;
+      const url = document.getElementById('image-url').value.trim();
+      const description = document.getElementById('image-description').value.trim();
       const status = document.getElementById('status-msg');
 
       if (!url || !description) {
-        status.textContent = "Vyplň obě pole!";
+        status.textContent = "❗ Vyplň obě pole!";
         return false;
       }
 
@@ -148,23 +156,24 @@
             'Content-Type': 'application/json',
             'X-Master-Key': MASTER_KEY
           },
-          body: JSON.stringify(updatedImages)
+          body: JSON.stringify({ record: updatedImages }) // 👈 důležitý fix
         });
 
         if (res.ok) {
-          status.textContent = "✅ Úspěšně přidáno!";
+          status.textContent = "✅ Přidáno!";
           images = updatedImages;
           loadRandomPhoto();
           document.getElementById('image-url').value = '';
           document.getElementById('image-description').value = '';
         } else {
-          status.textContent = "❌ Nepodařilo se uložit.";
+          status.textContent = "❌ Uložení selhalo.";
         }
       } catch (e) {
-        status.textContent = "❌ Chyba při přidávání.";
+        console.error(e);
+        status.textContent = "❌ Chyba při odesílání.";
       }
 
-      return false; // zabrání reloadu formuláře
+      return false;
     }
 
     loadImages();

@@ -2,181 +2,183 @@
 <html lang="cs">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>🔥 Náhodná Vtipná Fotka</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Náhodné vtipné fotky</title>
   <style>
     body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #000000, #1a1a1a);
-      color: white;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: start;
       min-height: 100vh;
-      background-image: radial-gradient(circle at top left, #ff00cc, transparent 70%), 
-                        radial-gradient(circle at bottom right, #00ffe7, transparent 70%);
-      animation: backgroundShift 10s infinite alternate;
-    }
-
-    @keyframes backgroundShift {
-      0% { background-position: top left, bottom right; }
-      100% { background-position: bottom right, top left; }
+      margin: 0;
+      padding: 2rem;
+      gap: 1.5rem;
     }
 
     h1 {
-      text-align: center;
-      margin-top: 40px;
-      font-size: 2.5em;
-      color: #00ffe7;
-      text-shadow: 0 0 15px #00ffe7;
-    }
-
-    #photo-container {
-      text-align: center;
-      margin: 30px auto;
-      padding: 20px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 20px;
-      max-width: 800px;
+      font-weight: 900;
+      text-shadow: 0 0 10px rgba(0,0,0,0.4);
     }
 
     img {
-      max-width: 100%;
-      max-height: 70vh;
-      border-radius: 16px;
-      box-shadow: 0 0 25px #00ffe7;
-      margin-bottom: 20px;
-    }
-
-    button, input[type="submit"] {
-      background-color: #00ffe7;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 10px;
-      font-size: 1em;
-      margin: 10px;
+      max-width: 90vw;
+      max-height: 50vh;
+      border-radius: 12px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+      transition: transform 0.3s ease;
       cursor: pointer;
-      transition: 0.3s;
+    }
+    img:hover {
+      transform: scale(1.05);
     }
 
-    button:hover, input[type="submit"]:hover {
-      background-color: #00cccc;
+    #description {
+      font-size: 1.2rem;
+      font-weight: 600;
+      text-align: center;
+      text-shadow: 0 0 5px rgba(0,0,0,0.6);
+      max-width: 90vw;
+      user-select: none;
+    }
+
+    button {
+      padding: 0.8rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      background: #ff6f61;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 6px 10px rgba(255, 111, 97, 0.6);
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #ff4a36;
     }
 
     form {
-      margin-top: 30px;
-      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      background: rgba(255 255 255 / 0.1);
+      padding: 1.2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      width: 90vw;
+      max-width: 400px;
     }
 
     input[type="text"] {
-      padding: 10px;
-      width: 300px;
-      border-radius: 8px;
+      padding: 0.7rem 1rem;
+      font-size: 1rem;
       border: none;
-      margin: 10px;
-    }
-
-    .status {
-      margin-top: 10px;
-      font-size: 0.9em;
-      color: #0f0;
-    }
-
-    p {
-      font-size: 1.2em;
+      border-radius: 6px;
+      outline: none;
     }
   </style>
 </head>
 <body>
-  <h1>🌀 Náhodná Vtipná Fotka</h1>
 
-  <div id="photo-container">
-    <p>Načítám...</p>
-  </div>
+  <h1>Náhodné vtipné fotky</h1>
 
-  <button onclick="loadRandomPhoto()">Zobraz jinou</button>
+  <img id="randomImage" src="" alt="Náhodná fotka" title="Klikni pro další" />
+  <div id="description"></div>
+  <button id="refreshBtn">Další fotka</button>
 
-  <form onsubmit="return submitImage()">
-    <h2>Přidej svou fotku:</h2>
-    <input type="text" id="image-url" placeholder="https://..." required />
-    <input type="text" id="image-description" placeholder="Popis fotky" required />
-    <input type="submit" value="Přidat do databáze" />
-    <div class="status" id="status-msg"></div>
+  <form id="uploadForm">
+    <h2>Přidej vlastní fotku</h2>
+    <input type="text" id="imageUrl" placeholder="URL obrázku" required />
+    <input type="text" id="imageDesc" placeholder="Popis obrázku" required />
+    <button type="submit">Nahrát</button>
+    <div id="uploadStatus"></div>
   </form>
 
   <script>
-    const BIN_ID = '683815d68a456b7966a6d41a';
-    const MASTER_KEY = '$2a$10$IUhlviZDWifNgc.S50T5pumARj9LSbg0lNxO5sG6xcqPvt.hTpxfW';
-    const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}/latest`;
-    const PUT_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+    const JSONBIN_URL = "https://api.jsonbin.io/v3/b/683815d68a456b7966a6d41a/latest";
+    const WORKER_URL = "https://aged-lab-b15a.cloudfare-f26.workers.dev/";
+
     let images = [];
 
-    async function loadImages() {
+    async function fetchImages() {
       try {
-        const res = await fetch(API_URL, {
-          headers: { 'X-Master-Key': MASTER_KEY }
+        const res = await fetch(JSONBIN_URL, {
+          headers: {
+            'X-Master-Key': '$2a$10$IUhlviZDWifNgc.S50T5pumARj9LSbg0lNxO5sG6xcqPvt.hTpxfW'
+          }
         });
-        const json = await res.json();
-        images = json.record || [];
-        loadRandomPhoto();
+        if (!res.ok) throw new Error('Nepodařilo se načíst obrázky');
+        const data = await res.json();
+        images = data.record || [];
       } catch (e) {
-        console.error(e);
-        document.getElementById('photo-container').innerHTML = '<p>Chyba při načítání 😿</p>';
+        alert('Chyba při načítání obrázků: ' + e.message);
       }
     }
 
-    function loadRandomPhoto() {
-      if (!images.length) return;
-      const random = images[Math.floor(Math.random() * images.length)];
-      const container = document.getElementById('photo-container');
-      container.innerHTML = `
-        <img src="${random.url}" alt="Vtipná fotka">
-        <p>${random.description}</p>
-      `;
+    function showRandomImage() {
+      if (images.length === 0) {
+        document.getElementById('randomImage').src = "";
+        document.getElementById('description').textContent = "Žádné obrázky k dispozici.";
+        return;
+      }
+      const index = Math.floor(Math.random() * images.length);
+      const img = images[index];
+      const imgEl = document.getElementById('randomImage');
+      imgEl.src = img.url;
+      imgEl.alt = img.description;
+      document.getElementById('description').textContent = img.description;
     }
 
-    async function submitImage() {
-      const url = document.getElementById('image-url').value.trim();
-      const description = document.getElementById('image-description').value.trim();
-      const status = document.getElementById('status-msg');
+    document.getElementById('refreshBtn').addEventListener('click', showRandomImage);
+    document.getElementById('randomImage').addEventListener('click', showRandomImage);
+
+    // Upload form
+    document.getElementById('uploadForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const url = document.getElementById('imageUrl').value.trim();
+      const description = document.getElementById('imageDesc').value.trim();
+      const statusEl = document.getElementById('uploadStatus');
 
       if (!url || !description) {
-        status.textContent = "❗ Vyplň obě pole!";
-        return false;
+        statusEl.textContent = "Vyplň URL i popis obrázku.";
+        return;
       }
 
-      const newImage = { url, description };
-      const updatedImages = [...images, newImage];
+      statusEl.textContent = "Nahrávám...";
 
       try {
-        const res = await fetch(PUT_URL, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Master-Key': MASTER_KEY
-          },
-          body: JSON.stringify({ record: updatedImages }) // 👈 důležitý fix
+        const res = await fetch(WORKER_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url, description }),
         });
 
-        if (res.ok) {
-          status.textContent = "✅ Přidáno!";
-          images = updatedImages;
-          loadRandomPhoto();
-          document.getElementById('image-url').value = '';
-          document.getElementById('image-description').value = '';
-        } else {
-          status.textContent = "❌ Uložení selhalo.";
+        if (!res.ok) {
+          const text = await res.text();
+          statusEl.textContent = "Chyba: " + text;
+          return;
         }
-      } catch (e) {
-        console.error(e);
-        status.textContent = "❌ Chyba při odesílání.";
+
+        statusEl.textContent = "Obrázek úspěšně přidán!";
+
+        // Obnovíme data a ukážeme novou fotku
+        await fetchImages();
+        showRandomImage();
+
+        // Vyčistíme formulář
+        e.target.reset();
+      } catch (err) {
+        statusEl.textContent = "Chyba: " + err.message;
       }
+    });
 
-      return false;
-    }
-
-    loadImages();
+    // Inicializace
+    fetchImages().then(showRandomImage);
   </script>
+
 </body>
 </html>

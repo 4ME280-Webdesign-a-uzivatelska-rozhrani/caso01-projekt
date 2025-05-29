@@ -1,56 +1,146 @@
-<script>
-  const workerURL = "https://aged-lab-b15a.cloudfare-f26.workers.dev";
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vtipné fotky náhodně</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      text-align: center;
+      padding: 2rem;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 1.5rem;
+    }
+    img {
+      max-width: 80vw;
+      max-height: 50vh;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      transition: transform 0.3s ease;
+      cursor: pointer;
+    }
+    img:hover {
+      transform: scale(1.05);
+    }
+    button, input, textarea {
+      padding: 0.6rem 1rem;
+      border-radius: 6px;
+      border: none;
+      font-size: 1rem;
+      outline: none;
+      transition: background-color 0.3s ease;
+    }
+    button {
+      background-color: #ff6f61;
+      color: white;
+      cursor: pointer;
+      user-select: none;
+    }
+    button:hover {
+      background-color: #ff8b7b;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      max-width: 350px;
+      margin: 0 auto;
+      gap: 0.8rem;
+    }
+    input, textarea {
+      resize: none;
+      font-family: inherit;
+    }
+    #description {
+      height: 3rem;
+    }
+    #message {
+      font-size: 0.9rem;
+      height: 1.2rem;
+      color: #ffcccb;
+      margin-top: -0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Vtipná náhodná fotka</h1>
+  <img id="photo" alt="Náhodná fotka" title="Klikni pro další" />
+  <p id="desc"></p>
+  <button id="refreshBtn">Další fotka</button>
 
-  const photo = document.getElementById("photo");
-  const desc = document.getElementById("desc");
-  const refreshBtn = document.getElementById("refreshBtn");
-  const uploadForm = document.getElementById("uploadForm");
-  const message = document.getElementById("message");
+  <h2>Přidej vlastní fotku</h2>
+  <form id="uploadForm">
+    <input id="url" type="url" placeholder="URL fotky" required />
+    <textarea id="description" placeholder="Popis fotky" required></textarea>
+    <button type="submit">Nahrát</button>
+    <div id="message"></div>
+  </form>
 
-  async function loadRandomPhoto() {
-    try {
+  <script>
+    const workerURL = "https://aged-lab-b15a.cloudfare-f26.workers.dev"; // <- uprav podle potřeby
+
+    const photo = document.getElementById("photo");
+    const desc = document.getElementById("desc");
+    const refreshBtn = document.getElementById("refreshBtn");
+    const uploadForm = document.getElementById("uploadForm");
+    const message = document.getElementById("message");
+
+    async function loadRandomPhoto() {
+      try {
+        message.textContent = "";
+        const res = await fetch(workerURL);
+        if (!res.ok) throw new Error("Nelze načíst fotku");
+        const data = await res.json();
+        photo.src = data.url;
+        photo.alt = data.description;
+        desc.textContent = data.description;
+      } catch (e) {
+        message.textContent = e.message;
+        photo.src = "";
+        desc.textContent = "";
+      }
+    }
+
+    refreshBtn.addEventListener("click", loadRandomPhoto);
+    photo.addEventListener("click", loadRandomPhoto);
+
+    uploadForm.addEventListener("submit", async e => {
+      e.preventDefault();
       message.textContent = "";
-      const res = await fetch(workerURL);
-      if (!res.ok) throw new Error("Nelze načíst fotku");
-      const data = await res.json();
-      photo.src = data.url;
-      photo.alt = data.description;
-      desc.textContent = data.description;
-    } catch (e) {
-      message.textContent = e.message;
-    }
-  }
-
-  refreshBtn.addEventListener("click", loadRandomPhoto);
-  photo.addEventListener("click", loadRandomPhoto);
-
-  uploadForm.addEventListener("submit", async e => {
-    e.preventDefault();
-    message.textContent = "";
-    const url = uploadForm.url.value.trim();
-    const description = uploadForm.description.value.trim();
-
-    if (!url || !description) {
-      message.textContent = "Vyplň URL i popis";
-      return;
-    }
-
-    try {
-      const res = await fetch(workerURL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, description }),
-      });
-      if (!res.ok) throw new Error("Nahrávání selhalo");
-      message.style.color = "lightgreen";
-      message.textContent = "Fotka přidána!";
-      uploadForm.reset();
-      loadRandomPhoto();
-    } catch (e) {
       message.style.color = "#ffcccb";
-      message.textContent = e.message;
-    }
-  });
 
-  loadRandomPhoto();
-</script>
+      const url = uploadForm.url.value.trim();
+      const description = uploadForm.description.value.trim();
+
+      if (!url || !description) {
+        message.textContent = "Vyplň URL i popis";
+        return;
+      }
+
+      try {
+        const res = await fetch(workerURL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url, description }),
+        });
+
+        if (!res.ok) throw new Error("Nahrávání selhalo");
+
+        message.style.color = "lightgreen";
+        message.textContent = "Fotka přidána!";
+        uploadForm.reset();
+        loadRandomPhoto();
+      } catch (e) {
+        message.textContent = e.message;
+      }
+    });
+
+    loadRandomPhoto();
+  </script>
+</body>
+</html>

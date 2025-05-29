@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <title>Vtipná fotka dne</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 30px;
+      background-color: #fdfdfd;
+    }
+    img {
+      max-width: 90%;
+      max-height: 80vh;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    p {
+      margin-top: 20px;
+      font-size: 1.2em;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎉 Vtipná fotka dne</h1>
+  <div id="photo-container">
+    <p>Načítání...</p>
+  </div>
+
+  <script>
+    fetch('images.json')
+      .then(response => response.json())
+      .then(images => {
+        const random = images[Math.floor(Math.random() * images.length)];
+        const container = document.getElementById('photo-container');
+        container.innerHTML = `
+          <img src="${random.url}" alt="Vtipná fotka">
+          <p>${random.description}</p>
+        `;
+      })
+      .catch(error => {
+        document.getElementById('photo-container').innerHTML = `<p>Chyba při načítání obrázků 😢</p>`;
+        console.error('Chyba:', error);
+      });
+  </script>
+</body>
+</html>

@@ -5,58 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Vtipná fotka z jiné dimenze</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Rubik&display=swap');
-
-    * {
-      box-sizing: border-box;
-    }
-
     body {
       margin: 0;
-      font-family: 'Rubik', sans-serif;
-      background: radial-gradient(ellipse at top, #0d0d0d 0%, #1a1a1a 100%);
-      overflow-x: hidden;
+      font-family: 'Segoe UI', sans-serif;
+      background: radial-gradient(circle, #0d0d0d, #1a1a1a);
       color: white;
-    }
-
-    .stars {
-      position: fixed;
-      width: 200%;
-      height: 200%;
-      background: transparent url('https://i.imgur.com/XUMzF0x.png') repeat;
-      animation: moveStars 100s linear infinite;
-      z-index: -1;
-      opacity: 0.25;
-    }
-
-    @keyframes moveStars {
-      from { transform: translate(0, 0); }
-      to { transform: translate(-100px, -200px); }
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
     }
 
     h1 {
       text-align: center;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 2.5em;
-      margin-top: 40px;
       color: #00ffe7;
       text-shadow: 0 0 10px #00ffe7;
+      margin-top: 30px;
     }
 
     #photo-container {
       text-align: center;
-      margin: 40px auto;
-      padding: 30px;
-      background: rgba(255, 255, 255, 0.05);
+      margin: 30px auto;
+      padding: 20px;
+      background: rgba(255,255,255,0.05);
       border-radius: 20px;
-      box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
       max-width: 800px;
-      transition: all 0.6s ease;
-    }
-
-    #photo-container:hover {
-      transform: scale(1.01);
-      box-shadow: 0 0 30px rgba(0, 255, 255, 0.4);
     }
 
     img {
@@ -64,42 +37,48 @@
       max-height: 70vh;
       border-radius: 16px;
       margin-bottom: 20px;
-      transition: transform 0.4s ease;
-    }
-
-    img:hover {
-      transform: scale(1.02);
     }
 
     p {
-      font-size: 1.3em;
-      color: #ccc;
+      font-size: 1.2em;
     }
 
-    button {
-      display: block;
-      margin: 0 auto 50px auto;
+    button, input[type="submit"] {
       background-color: #00ffe7;
       border: none;
-      padding: 14px 32px;
-      font-size: 1.2em;
-      border-radius: 30px;
-      color: #000;
-      font-weight: bold;
-      box-shadow: 0 0 20px #00ffe7;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-size: 1em;
+      margin: 10px;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: 0.3s;
     }
 
-    button:hover {
-      background-color: #0ff;
-      box-shadow: 0 0 30px #0ff;
-      transform: scale(1.05);
+    button:hover, input[type="submit"]:hover {
+      background-color: #00cccc;
+    }
+
+    form {
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      width: 300px;
+      border-radius: 8px;
+      border: none;
+      margin: 10px;
+    }
+
+    .status {
+      margin-top: 10px;
+      font-size: 0.9em;
+      color: #0f0;
     }
   </style>
 </head>
 <body>
-  <div class="stars"></div>
   <h1>🌌 Vtipná fotka z jiné dimenze</h1>
 
   <div id="photo-container">
@@ -108,16 +87,34 @@
 
   <button onclick="loadRandomPhoto()">Zobrazit jinou fotku</button>
 
+  <form onsubmit="return submitImage()">
+    <h2>Přidej svou fotku:</h2>
+    <input type="text" id="image-url" placeholder="https://..." required />
+    <input type="text" id="image-description" placeholder="Popis fotky" required />
+    <input type="submit" value="Přidat do databáze" />
+    <div class="status" id="status-msg"></div>
+  </form>
+
   <script>
+    const BIN_ID = '683815d68a456b7966a6d41a'; // 🔁 Sem vlož svůj Bin ID
+    const MASTER_KEY = '$2a$10$IUhlviZDWifNgc.S50T5pumARj9LSbg0lNxO5sG6xcqPvt.hTpxfW';
+    const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}/latest`;
+    const PUT_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
     let images = [];
 
     async function loadImages() {
       try {
-        const res = await fetch('images.json');
-        images = await res.json();
+        const res = await fetch(API_URL, {
+          headers: {
+            'X-Master-Key': MASTER_KEY
+          }
+        });
+        const json = await res.json();
+        images = json.record;
         loadRandomPhoto();
       } catch (e) {
-        document.getElementById('photo-container').innerHTML = '<p>Chyba při načítání fotek 🚫</p>';
+        document.getElementById('photo-container').innerHTML = '<p>Chyba při načítání fotek 😿</p>';
       }
     }
 
@@ -129,6 +126,45 @@
         <img src="${random.url}" alt="Vtipná fotka">
         <p>${random.description}</p>
       `;
+    }
+
+    async function submitImage() {
+      const url = document.getElementById('image-url').value;
+      const description = document.getElementById('image-description').value;
+      const status = document.getElementById('status-msg');
+
+      if (!url || !description) {
+        status.textContent = "Vyplň obě pole!";
+        return false;
+      }
+
+      const newImage = { url, description };
+      const updatedImages = [...images, newImage];
+
+      try {
+        const res = await fetch(PUT_URL, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Master-Key': MASTER_KEY
+          },
+          body: JSON.stringify(updatedImages)
+        });
+
+        if (res.ok) {
+          status.textContent = "✅ Úspěšně přidáno!";
+          images = updatedImages;
+          loadRandomPhoto();
+          document.getElementById('image-url').value = '';
+          document.getElementById('image-description').value = '';
+        } else {
+          status.textContent = "❌ Nepodařilo se uložit.";
+        }
+      } catch (e) {
+        status.textContent = "❌ Chyba při přidávání.";
+      }
+
+      return false; // zabrání reloadu formuláře
     }
 
     loadImages();

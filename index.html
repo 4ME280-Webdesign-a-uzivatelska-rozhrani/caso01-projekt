@@ -1,49 +1,100 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Vtipná fotka dne</title>
   <style>
     body {
-      font-family: sans-serif;
-      text-align: center;
-      padding: 30px;
-      background-color: #fdfdfd;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom right, #f0f0f0, #ffffff);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
     }
-    img {
-      max-width: 90%;
-      max-height: 80vh;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    }
-    p {
-      margin-top: 20px;
-      font-size: 1.2em;
+
+    h1 {
+      margin-top: 30px;
       color: #333;
+    }
+
+    #photo-container {
+      margin: 30px;
+      padding: 20px;
+      background-color: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      max-width: 800px;
+    }
+
+    img {
+      max-width: 100%;
+      max-height: 70vh;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    p {
+      margin-top: 15px;
+      font-size: 1.2em;
+      color: #555;
+    }
+
+    button {
+      background-color: #0077cc;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 1em;
+      cursor: pointer;
+      margin-bottom: 30px;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #005fa3;
     }
   </style>
 </head>
 <body>
-  <h1>🎉 Vtipná fotka dne</h1>
+  <h1>😂 Vtipná fotka dne</h1>
+
   <div id="photo-container">
-    <p>Načítání...</p>
+    <p>Načítání fotky...</p>
   </div>
 
+  <button onclick="loadRandomPhoto()">Zobrazit jinou fotku</button>
+
   <script>
-    fetch('images.json')
-      .then(response => response.json())
-      .then(images => {
-        const random = images[Math.floor(Math.random() * images.length)];
-        const container = document.getElementById('photo-container');
-        container.innerHTML = `
-          <img src="${random.url}" alt="Vtipná fotka">
-          <p>${random.description}</p>
-        `;
-      })
-      .catch(error => {
-        document.getElementById('photo-container').innerHTML = `<p>Chyba při načítání obrázků 😢</p>`;
-        console.error('Chyba:', error);
-      });
+    let images = [];
+
+    async function loadImages() {
+      try {
+        const res = await fetch('images.json');
+        images = await res.json();
+        loadRandomPhoto();
+      } catch (e) {
+        document.getElementById('photo-container').innerHTML = '<p>Chyba při načítání fotek 😿</p>';
+      }
+    }
+
+    function loadRandomPhoto() {
+      if (!images.length) return;
+      const random = images[Math.floor(Math.random() * images.length)];
+      const container = document.getElementById('photo-container');
+      container.innerHTML = `
+        <img src="${random.url}" alt="Vtipná fotka">
+        <p>${random.description}</p>
+      `;
+    }
+
+    loadImages();
   </script>
 </body>
 </html>
